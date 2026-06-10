@@ -150,7 +150,7 @@
                                 <i class='bx bxs-message-rounded' style="margin-right: 0.8rem; font-size: 1.25rem;"></i> Messages
                             </a>
                             <div class="profile-menu-divider"></div>
-                            <a href="javascript:void(0)" onclick="confirmLogout(event, '{{ url_for('logout') }}')" class="profile-menu-item logout">
+                            <a href="javascript:void(0)" data-logout-url="{{ url_for('logout') }}" onclick="confirmLogout(event, this.dataset.logoutUrl)" class="profile-menu-item logout">
                                 <i class='bx bx-log-out' style="margin-right: 0.8rem; font-size: 1.25rem;"></i> Logout
                             </a>
                         </div>
@@ -159,7 +159,7 @@
                 {% else %}
                 <ul class="nav-links" id="navLinks">
                     <li>
-                        <button id="pwa-install-btn" onclick="installApp()" style="display: none; background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 14px;">
+                        <button id="pwa-install-btn" onclick="installApp()" style="display: none; background: none; color: inherit; border: none; padding: 0; font-weight: 500; cursor: pointer; font-size: 0.95rem;">
                             <i class='bx bxs-download'></i> Install App
                         </button>
                     </li>

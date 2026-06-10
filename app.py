@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, abort
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import session
@@ -97,6 +97,19 @@ db.init_app(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
+
+
+def admin_required(f):
+    """Decorator that ensures the current user is an admin. Returns 403 if not."""
+    @wraps(f)
+    @login_required
+    def decorated_function(*args, **kwargs):
+        if current_user.user_type != 'admin':
+            flash('You do not have permission to access that page.', 'error')
+            abort(403)
+        return f(*args, **kwargs)
+    return decorated_function
+
 
 # Run database migrations at startup
 @app.before_request
@@ -1474,10 +1487,8 @@ def admin_send_message():
 
 # Admin Notifications
 @app.route('/admin/notifications')
-@login_required
+@admin_required
 def admin_notifications():
-    if current_user.user_type != 'admin':
-        return redirect(url_for('dashboard'))
     
     # Get sample notifications for demonstration
     from datetime import datetime, timedelta
@@ -1598,28 +1609,22 @@ def admin_notifications():
                          system_count=system_count)
 
 @app.route('/admin/notifications/<int:notification_id>/read', methods=['POST'])
-@login_required
+@admin_required
 def admin_mark_notification_read(notification_id):
-    if current_user.user_type != 'admin':
-        return redirect(url_for('dashboard'))
     
     # In production, this would mark the notification as read in database
     return jsonify({'success': True})
 
 @app.route('/admin/notifications/<int:notification_id>/delete', methods=['POST'])
-@login_required
+@admin_required
 def admin_delete_notification(notification_id):
-    if current_user.user_type != 'admin':
-        return redirect(url_for('dashboard'))
     
     # In production, this would delete the notification from database
     return jsonify({'success': True})
 
 @app.route('/admin/notifications/mark-all-read', methods=['POST'])
-@login_required
+@admin_required
 def admin_mark_all_notifications_read():
-    if current_user.user_type != 'admin':
-        return redirect(url_for('dashboard'))
     
     # In production, this would mark all notifications as read
     return jsonify({'success': True})

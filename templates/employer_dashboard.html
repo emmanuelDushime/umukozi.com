@@ -90,8 +90,8 @@
                 <div>
                     <span class="hp-pill" style="background: rgba(249, 115, 22, 0.2); color: #fb923c; margin-bottom: 1rem; display: inline-block;">Dashboard Overview</span>
                     <h1 style="margin-bottom: 0.75rem; color: white; font-size: 2.25rem;">{{ _('welcome_back_user', name=current_user.full_name) }}</h1>
-                    <p style="color: rgba(255, 255, 255, 0.7); margin: 0; font-size: 1.1rem; max-width: 500px;">
-                        Manage your household services, track applications, and find top-rated workers for your home.
+                    <p style="color: rgba(255, 255, 255, 0.7); margin: 0; font-size: 1.1rem;">
+                        Post jobs, track applications, and hire trusted workers.
                     </p>
                 </div>
                 <div>
@@ -431,7 +431,7 @@ window.workersDataPayload = [
         "skills": {{ (worker_data.worker.skills or '') | tojson | safe }},
         "experience_years": {{ worker_data.worker.experience_years or 0 }},
         "experience_details": {{ (worker_data.worker.experience_details or '') | tojson | safe }},
-        "hourly_rate": {{ worker_data.worker.hourly_rate or 'null' | tojson | safe }},
+        "hourly_rate": {{ (worker_data.worker.hourly_rate or '') | tojson | safe }},
         "district": {{ (worker_data.worker.district or '') | tojson | safe }},
         "province": {{ (worker_data.worker.province or '') | tojson | safe }},
         "worker_phone": {{ worker_data.worker.user.phone | tojson | safe }},
@@ -450,24 +450,7 @@ window.workersDataPayload = [
 ];
 </script>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Add event listeners to contact buttons
-    const contactButtons = document.querySelectorAll('.contact-worker-btn');
-    contactButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const workerId = this.getAttribute('data-worker-id');
-            const workerName = this.getAttribute('data-worker-name');
-            showContactOptions(workerId, workerName);
-        });
-    });
-});
 
-function showContactOptions(workerId, workerName) {
-    // Check if employer has access to contact info
-    fetch(`/employer/worker-contact/${workerId}`, {
-        method: 'GET',
-```
 
 <style>
 
@@ -931,12 +914,12 @@ function showContactModal(workerName, phone, email, workerId) {
                         <div style="margin-bottom: 0.75rem;">
                             <label style="display: block; margin-bottom: 0.25rem; font-size: 0.875rem; font-weight: 600; color: var(--text-primary);">Job Title</label>
                             <input type="text" name="job_title" placeholder="e.g., Housekeeper, Gardener" required
-                                   style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 0.375rem; font-size: 0.875rem;">
+                                   style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 0.375rem; font-size: 0.875rem;" />
                         </div>
                         <div style="margin-bottom: 0.75rem;">
                             <label style="display: block; margin-bottom: 0.25rem; font-size: 0.875rem; font-weight: 600; color: var(--text-primary);">Salary (FRW)</label>
                             <input type="number" name="salary" placeholder="e.g., 50000" required
-                                   style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 0.375rem; font-size: 0.875rem;">
+                                   style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 0.375rem; font-size: 0.875rem;" />
                         </div>
                         <div style="margin-bottom: 1rem;">
                             <label style="display: block; margin-bottom: 0.25rem; font-size: 0.875rem; font-weight: 600; color: var(--text-primary);">Notes</label>

@@ -124,11 +124,11 @@
                             <h4>{{ notification.title }}</h4>
                             <div class="notification-actions">
                                 {% if not notification.is_read %}
-                                <button onclick="markAsRead({{ notification.id }})" class="action-btn" title="Mark as read">
+                                <button onclick="markAsRead(this)" class="action-btn" title="Mark as read">
                                     <i class='bx bx-check'></i>
                                 </button>
                                 {% endif %}
-                                <button onclick="deleteNotification({{ notification.id }})" class="action-btn danger" title="Delete">
+                                <button onclick="deleteNotification(this)" class="action-btn danger" title="Delete">
                                     <i class='bx bx-trash'></i>
                                 </button>
                             </div>
@@ -423,8 +423,9 @@ function switchTab(tab) {
     });
 }
 
-function markAsRead(notificationId) {
-    const notification = document.querySelector(`[data-notification-id="${notificationId}"]`);
+function markAsRead(btn) {
+    const notification = btn.closest('.notification-item');
+    const notificationId = notification ? notification.dataset.notificationId : null;
     if (notification) {
         notification.classList.remove('unread');
         const actionBtn = notification.querySelector('.action-btn');
@@ -453,9 +454,10 @@ function markAllAsRead() {
     console.log('Marked all notifications as read');
 }
 
-function deleteNotification(notificationId) {
+function deleteNotification(btn) {
     if (confirm('Are you sure you want to delete this notification?')) {
-        const notification = document.querySelector(`[data-notification-id="${notificationId}"]`);
+        const notification = btn.closest('.notification-item');
+        const notificationId = notification ? notification.dataset.notificationId : null;
         if (notification) {
             notification.style.animation = 'slideOutRight 0.3s ease-out';
             setTimeout(() => {
