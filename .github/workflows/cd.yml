@@ -1,0 +1,126 @@
+name: CD — Deploy to Render
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:         # Allow manual trigger from GitHub UI
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+
+# Ensure only one deployment runs at a time
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  # ─────────────────────────────────────────
+  # JOB 1: Deploy to Render
+  # ─────────────────────────────────────────
+  deploy:
+    name: 🚀 Deploy to Render
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://umukozi.onrender.com   # Update with your actual Render URL
+
+    steps:
+      - name: ⬇️ Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🚀 Trigger Render deployment
+        run: |
+          echo "Triggering Render deployment..."
+          RESPONSE=$(curl -s -o /tmp/render_response.json -w "%{http_code}" \
+            --request POST \
+            --url "https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploys" \
+            --header "Accept: application/json" \
+            --header "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+            --header "Content-Type: application/json" \
+            --data '{"clearCache": "do_not_clear"}')
+
+          echo "HTTP Status: $RESPONSE"
+          cat /tmp/render_response.json
+
+          if [ "$RESPONSE" -eq 201 ]; then
+            echo "✅ Deployment triggered successfully!"
+            DEPLOY_ID=$(cat /tmp/render_response.json | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('deploy',{}).get('id','unknown'))")
+            echo "Deploy ID: $DEPLOY_ID"
+            echo "DEPLOY_ID=$DEPLOY_ID" >> $GITHUB_ENV
+          else
+            echo "❌ Failed to trigger deployment (HTTP $RESPONSE)"
+            exit 1
+          fi
+
+      - name: ⏳ Wait for deployment to complete
+        run: |
+          echo "Waiting for deployment to complete..."
+          MAX_ATTEMPTS=30   # 30 × 20s = 10 minutes max wait
+          ATTEMPT=0
+
+          while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
+            ATTEMPT=$((ATTEMPT + 1))
+            echo "⏳ Check $ATTEMPT/$MAX_ATTEMPTS..."
+
+            STATUS_RESPONSE=$(curl -s \
+              --request GET \
+              --url "https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploys/$DEPLOY_ID" \
+              --header "Accept: application/json" \
+              --header "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}")
+
+            STATUS=$(echo "$STATUS_RESPONSE" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('deploy',{}).get('status','unknown'))" 2>/dev/null || echo "unknown")
+            echo "   Status: $STATUS"
+
+            if [ "$STATUS" = "live" ]; then
+              echo "✅ Deployment successful! Service is live."
+              break
+            elif [ "$STATUS" = "build_failed" ] || [ "$STATUS" = "update_failed" ] || [ "$STATUS" = "canceled" ]; then
+              echo "❌ Deployment failed with status: $STATUS"
+              exit 1
+            fi
+
+            sleep 20
+          done
+
+          if [ $ATTEMPT -ge $MAX_ATTEMPTS ]; then
+            echo "⚠️ Deployment is taking longer than expected. Check Render dashboard."
+          fi
+
+      - name: 🌐 Health check
+        run: |
+          echo "Running health check..."
+          sleep 10
+
+          APP_URL="https://umukozi.onrender.com"   # Update with your Render URL
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 "$APP_URL" || echo "000")
+
+          echo "Health check status: $HTTP_STATUS"
+
+          if [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "302" ]; then
+            echo "✅ Application is healthy and responding!"
+          else
+            echo "⚠️ Health check returned $HTTP_STATUS — check the app manually."
+          fi
+
+      - name: 📢 Notify deployment success
+        if: success()
+        run: |
+          echo "🎉 Deployment to production completed successfully!"
+          echo "🔗 App URL: https://umukozi.onrender.com"
+          echo "📅 Deployed at: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+          echo "📝 Commit: ${{ github.sha }}"
+          echo "👤 Triggered by: ${{ github.actor }}"
+
+      - name: 📢 Notify deployment failure
+        if: failure()
+        run: |
+          echo "❌ Deployment FAILED!"
+          echo "📅 Failed at: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+          echo "📝 Commit: ${{ github.sha }}"
+          echo "👤 Triggered by: ${{ github.actor }}"
+          echo "🔍 Check Render dashboard: https://dashboard.render.com"
