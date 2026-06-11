@@ -608,7 +608,8 @@ def dashboard():
             
             try:
                 # Calculate statistics for static cards
-                employer_jobs = Job.query.filter_by(employer_id=employer.id).all()
+                from sqlalchemy.orm import joinedload
+                employer_jobs = Job.query.options(joinedload(Job.applications)).filter_by(employer_id=employer.id).all()
                 total_jobs_posted = len(employer_jobs)
                 positions_filled = len([job for job in employer_jobs if job.status == 'filled'])
                 
@@ -840,6 +841,7 @@ def submit_payment(worker_id):
             for admin in admin_users:
                 notif = Notification(
                     user_id=admin.id,
+                    title="New Payment Submitted",
                     message=f"New payment submitted: {employer.user.full_name} for {worker.user.full_name}",
                     notification_type='new_payment'
                 )
@@ -1242,7 +1244,9 @@ def admin_approve_verification(user_type, profile_id):
     # Add in-app notification
     approval_notif = Notification(
         user_id=profile.user.id,
-        message="Congratulations! Your profile has been verified and approved by the admin."
+        title="Profile Approved",
+        message="Congratulations! Your profile has been verified and approved by the admin.",
+        notification_type="profile_approved"
     )
     db.session.add(approval_notif)
     db.session.commit()
@@ -1357,7 +1361,12 @@ def send_message():
     msg = Message(sender_id=current_user.id, receiver_id=receiver_id, content=content)
     db.session.add(msg)
     
-    notif = Notification(user_id=receiver_id, message=f'New message from {current_user.full_name}')
+    notif = Notification(
+        user_id=receiver_id, 
+        title="New Message",
+        message=f'New message from {current_user.full_name}',
+        notification_type='new_message'
+    )
     db.session.add(notif)
     
     db.session.commit()
@@ -1953,6 +1962,7 @@ def admin_verify_payment(payment_id):
             if employer and employer.user:
                 notif = Notification(
                     user_id=employer.user.id,
+                    title="Payment Verified",
                     message=f"Your payment for worker contact has been verified. You can now view their contact information.",
                     notification_type='payment_verified'
                 )
@@ -1995,6 +2005,7 @@ def admin_reject_payment(payment_id):
     if employer and employer.user:
         notif = Notification(
             user_id=employer.user.id,
+            title="Payment Rejected",
             message=f"Your payment was rejected: {reason}",
             notification_type='payment_rejected'
         )
@@ -2268,7 +2279,9 @@ def worker_apply_job(job_id):
     # Notify employer in-app
     employer_notif = Notification(
         user_id=job.employer.user.id,
-        message=f"New Application: {current_user.full_name} applied for your job '{job.title}'."
+        title="New Application",
+        message=f"New Application: {current_user.full_name} applied for your job '{job.title}'.",
+        notification_type="new_application"
     )
     db.session.add(employer_notif)
     db.session.commit()
@@ -2647,7 +2660,7 @@ def employer_applications():
                     'email': 'Contact info unavailable'
                 })
         
-        return render_template('employer_applications.html', employer=employer, applications_with_contact_status=applications_with_contact_status, has_verified_payments=has_verified_payments)
+        return render_template('employer_applications.html', employer=employer, applications=applications, applications_with_contact_status=applications_with_contact_status, has_verified_payments=has_verified_payments)
     
     except Exception as e:
         import logging
@@ -2676,7 +2689,9 @@ def accept_application(application_id):
         # Notify worker
         worker_notif = Notification(
             user_id=application.worker.user.id,
-            message=f"Application Accepted! Your application for '{application.job.title}' has been accepted."
+            title="Application Accepted",
+            message=f"Application Accepted! Your application for '{application.job.title}' has been accepted.",
+            notification_type="application_accepted"
         )
         db.session.add(worker_notif)
         
@@ -2722,7 +2737,9 @@ def reject_application(application_id):
         # Notify worker
         worker_notif = Notification(
             user_id=application.worker.user.id,
-            message=f"Application Status: Your application for '{application.job.title}' was reviewed."
+            title="Application Rejected",
+            message=f"Application Status: Your application for '{application.job.title}' was reviewed.",
+            notification_type="application_rejected"
         )
         db.session.add(worker_notif)
         
@@ -3852,7 +3869,9 @@ def change_password():
     # Send notification
     notif = Notification(
         user_id=current_user.id,
-        message="Your password was successfully changed. If you didn't do this, please contact support immediately."
+        title="Password Changed",
+        message="Your password was successfully changed. If you didn't do this, please contact support immediately.",
+        notification_type="security_alert"
     )
     db.session.add(notif)
     db.session.commit()
