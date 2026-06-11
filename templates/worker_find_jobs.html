@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Find Jobs - Umukozi{% endblock %}
+{% block title %}{{ _('page_title_find_jobs') }}{% endblock %}
 
 {% block content %}
 
@@ -16,7 +16,7 @@
         <div class="card welcome-card-premium" style="margin-bottom: 2.5rem; padding: 2.5rem; border: none; position: relative; overflow: hidden;">
             <div class="welcome-card-bg-decoration"></div>
             <div style="position: relative; z-index: 1;">
-                <span class="hp-pill" style="background: rgba(249, 115, 22, 0.15); color: #ea580c; margin-bottom: 1rem; display: inline-block;">Opportunities Found</span>
+                <span class="hp-pill" style="background: rgba(249, 115, 22, 0.15); color: #ea580c; margin-bottom: 1rem; display: inline-block;">{{ _('opportunities_found') }}</span>
                 <h1 style="margin-bottom: 0.75rem; color: #1e293b; font-size: 2.25rem;">{{ _('find_opportunities_title') }}</h1>
                 <p style="color: #64748b; margin: 0; font-size: 1.1rem; max-width: 500px;">
                     {{ _('browse_apply_jobs') }}
@@ -68,10 +68,10 @@
                     <select class="form-control" style="border-radius: 0.75rem;">
                         <option value="">{{ _('all_locations') }}</option>
                         <option value="kigali">Kigali</option>
-                        <option value="northern">Northern Province</option>
-                        <option value="southern">Southern Province</option>
-                        <option value="eastern">Eastern Province</option>
-                        <option value="western">Western Province</option>
+                        <option value="northern">{{ _('northern_province') }}</option>
+                        <option value="southern">{{ _('southern_province') }}</option>
+                        <option value="eastern">{{ _('eastern_province') }}</option>
+                        <option value="western">{{ _('western_province') }}</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -88,9 +88,9 @@
                     <label class="form-label">{{ _('price_range') }}</label>
                     <select class="form-control" style="border-radius: 0.75rem;">
                         <option value="">{{ _('any_price') }}</option>
-                        <option value="0-50000">Below 50k RWF</option>
-                        <option value="50000-100000">50k - 100k RWF</option>
-                        <option value="100000+">100k+ RWF</option>
+                        <option value="0-50000">{{ _('below_50k_rwf') }}</option>
+                        <option value="50000-100000">{{ _('50k_100k_rwf') }}</option>
+                        <option value="100000+">{{ _('100k_plus_rwf') }}</option>
                     </select>
                 </div>
             </div>
@@ -120,7 +120,7 @@
                     <div class="job-card-modern" style="border-radius: 1rem; width: 100%; box-sizing: border-box; position: relative;">
                         <!-- New Job Indicator -->
                         {% if job.is_new and not job.is_expired %}
-                        <div class="new-worker-badge">NEW</div>
+                        <div class="new-worker-badge">{{ _('new') }}</div>
                         {% endif %}
                         
                         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
@@ -130,12 +130,12 @@
                                 </div>
                                 <div>
                                     <h4 style="font-size: 1rem; font-weight: 700; margin-bottom: 0.125rem;">{{ job.title }}</h4>
-                                    <p style="color: var(--text-secondary); font-size: 0.75rem;">{{ job.employer.company_name or 'Private Household' }}</p>
+                                    <p style="color: var(--text-secondary); font-size: 0.75rem;">{{ job.employer.company_name or _('private_household') }}</p>
                                 </div>
                             </div>
                             <div style="display: flex; gap: 0.5rem; flex-direction: column; align-items: flex-end;">
                                 {% if job.is_expired %}
-                                <span class="badge" style="background: #fee2e2; color: #dc2626; font-size: 0.6rem; text-transform: uppercase; font-weight: 700; border: 1px solid #fecaca;">EXPIRED</span>
+                                <span class="badge" style="background: #fee2e2; color: #dc2626; font-size: 0.6rem; text-transform: uppercase; font-weight: 700; border: 1px solid #fecaca;">{{ _('expired') }}</span>
                                 {% endif %}
                                 {% if job.is_urgent and not job.is_expired %}
                                 <span class="badge" style="background: #fef2f2; color: #ef4444; font-size: 0.6rem; text-transform: uppercase; font-weight: 700; border: 1px solid #fee2e2;">{{ _('urgent') }}</span>
@@ -158,7 +158,7 @@
                             </div>
                             {% if job.deadline %}
                             <div style="display: flex; flex-direction: column;">
-                                <span style="font-size: 0.6rem; text-transform: uppercase; color: var(--text-secondary); font-weight: 600; letter-spacing: 0.05em;">Deadline</span>
+                                <span style="font-size: 0.6rem; text-transform: uppercase; color: var(--text-secondary); font-weight: 600; letter-spacing: 0.05em;">{{ _('deadline') }}</span>
                                 <span style="font-size: 0.875rem; font-weight: 700; color: #ef4444;">{{ job.deadline.strftime('%d %b %Y') }}</span>
                             </div>
                             {% endif %}
