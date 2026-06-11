@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ session.get('lang', 'en') }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -154,6 +154,11 @@
                                 <i class='bx bx-log-out' style="margin-right: 0.8rem; font-size: 1.25rem;"></i> Logout
                             </a>
                         </div>
+                    <div class="lang-selector" style="display:flex; gap:0.5rem; align-items:center;">
+                        <a href="{{ url_for('set_language', lang='en') }}" class="lang-link" style="padding:6px 8px; border-radius:6px; text-decoration:none; color:inherit; background: {% if session.get('lang','en')=='en' %}rgba(0,0,0,0.06){% else %}transparent{% endif %};">EN</a>
+                        <a href="{{ url_for('set_language', lang='fr') }}" class="lang-link" style="padding:6px 8px; border-radius:6px; text-decoration:none; color:inherit; background: {% if session.get('lang')=='fr' %}rgba(0,0,0,0.06){% else %}transparent{% endif %};">FR</a>
+                        <a href="{{ url_for('set_language', lang='rw') }}" class="lang-link" style="padding:6px 8px; border-radius:6px; text-decoration:none; color:inherit; background: {% if session.get('lang')=='rw' %}rgba(0,0,0,0.06){% else %}transparent{% endif %};">RW</a>
+                    </div>
                     </div>
                 </div>
                 {% else %}
@@ -166,6 +171,11 @@
                     <li><a href="#how-it-works">How It Works</a></li>
                     <li><a href="#features">Features</a></li>
                     <li><a href="{{ url_for('login') }}" class="btn nav-btn-primary btn-sm">Login</a></li>
+                    <li style="display:flex; align-items:center; gap:0.5rem;">
+                        <a href="{{ url_for('set_language', lang='en') }}" style="text-decoration:none;">EN</a>
+                        <a href="{{ url_for('set_language', lang='fr') }}" style="text-decoration:none;">FR</a>
+                        <a href="{{ url_for('set_language', lang='rw') }}" style="text-decoration:none;">RW</a>
+                    </li>
                     <li><a href="{{ url_for('register') }}" class="btn nav-btn-outline btn-sm">Sign Up</a></li>
                 </ul>
                 {% endif %}
