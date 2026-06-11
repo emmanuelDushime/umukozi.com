@@ -1,7 +1,9 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, abort
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, abort, session
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
+from flask_wtf.csrf import CSRFProtect
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask import session
 
 from datetime import datetime, timedelta
 import os
@@ -64,6 +66,12 @@ except ImportError:
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'your-secret-key-here')
+app.config['WTF_CSRF_ENABLED'] = True
+app.config['WTF_CSRF_TIME_LIMIT'] = 3600
+app.config['SESSION_REFRESH_EACH_REQUEST'] = True
+app.config['REMEMBER_COOKIE_HTTPONLY'] = True
+app.config['REMEMBER_COOKIE_SECURE'] = True
+app.config['REMEMBER_COOKIE_SAMESITE'] = 'Lax'
 
 # Database configuration - support both SQLite (development) and PostgreSQL (production)
 app.config['SQLALCHEMY_DATABASE_URI'] = database_url
@@ -77,6 +85,11 @@ if os.getenv('FLASK_ENV') == 'production':
         'pool_size': 10,
         'max_overflow': 20
     }
+    app.config['SESSION_COOKIE_SECURE'] = True
+    app.config['SESSION_COOKIE_HTTPONLY'] = True
+    app.config['PREFERRED_URL_SCHEME'] = 'https'
+    if os.getenv('SECRET_KEY', 'your-secret-key-here') == 'your-secret-key-here':
+        raise RuntimeError('SECRET_KEY must be set to a strong secret in production.')
 
 # Additional production configurations
 app.config['UPLOAD_FOLDER'] = os.getenv('UPLOAD_FOLDER', 'static/uploads')
@@ -84,8 +97,6 @@ app.config['MAX_CONTENT_LENGTH'] = int(os.getenv('MAX_CONTENT_LENGTH', 16777216)
 
 # Security configurations for production
 if os.getenv('FLASK_ENV') == 'production':
-    app.config['SESSION_COOKIE_SECURE'] = True
-    app.config['SESSION_COOKIE_HTTPONLY'] = True
     app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 
 # Import models and db
@@ -97,6 +108,38 @@ db.init_app(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
+login_manager.session_protection = 'strong'
+
+csrf = CSRFProtect(app)
+limiter = Limiter(
+    app,
+    key_func=get_remote_address,
+    default_limits=["1000 per day", "200 per hour"],
+    headers_enabled=True,
+    storage_uri="memory://"
+)
+
+@app.after_request
+def set_security_headers(response):
+    response.headers['X-Frame-Options'] = 'DENY'
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['Referrer-Policy'] = 'no-referrer-when-downgrade'
+    response.headers['Permissions-Policy'] = 'geolocation=(), microphone=(), camera=()'
+    response.headers['X-XSS-Protection'] = '1; mode=block'
+    response.headers['Content-Security-Policy'] = (
+        "default-src 'self'; "
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://fonts.googleapis.com https://unpkg.com; "
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com; "
+        "img-src 'self' data: blob: https://res.cloudinary.com https://api.cloudinary.com; "
+        "font-src 'self' https://fonts.gstatic.com; "
+        "connect-src 'self' https://res.cloudinary.com https://api.cloudinary.com; "
+        "frame-ancestors 'none'; "
+        "base-uri 'self'; "
+        "form-action 'self';"
+    )
+    if os.getenv('FLASK_ENV') == 'production':
+        response.headers['Strict-Transport-Security'] = 'max-age=63072000; includeSubDomains; preload'
+    return response
 
 
 def admin_required(f):
@@ -449,6 +492,7 @@ def service_worker():
     response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
     return response
 
+@limiter.limit('10 per minute')
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -483,6 +527,7 @@ def login():
     
     return render_template('login.html')
 
+@limiter.limit('5 per minute')
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     # Check if registration is allowed
@@ -711,6 +756,7 @@ def worker_profile(worker_id):
     
     return render_template('worker_profile.html', worker=worker, contact_info=contact_info, has_verified_payments=has_verified_payments)
 
+@limiter.limit('30 per hour')
 @app.route('/employer/worker-contact/<int:worker_id>')
 @login_required
 def employer_worker_contact(worker_id):
@@ -758,6 +804,7 @@ def get_payment_pricing(worker_id):
         'formatted_amount': f"RWF {int(amount):,}".replace(',', ' ')
     })
 
+@limiter.limit('8 per hour')
 @app.route('/employer/payment/<int:worker_id>/submit', methods=['POST'])
 @login_required
 def submit_payment(worker_id):
@@ -2236,6 +2283,7 @@ def worker_job_details(job_id):
     
     return render_template('worker_job_details.html', worker=worker, job=job, has_applied=has_applied)
 
+@limiter.limit('20 per hour')
 @app.route('/worker/apply/<int:job_id>', methods=['POST', 'GET'])
 @login_required
 @require_complete_profile

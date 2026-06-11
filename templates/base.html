@@ -25,6 +25,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;700;900&display=swap" rel="stylesheet">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     
     {% block extra_css %}{% endblock %}
 </head>
@@ -617,6 +618,7 @@
             modalHtml += '</div>';
 
             modalHtml += '<form id="paymentForm" method="POST" action="/employer/payment/' + workerId + '/submit" enctype="multipart/form-data">';
+            modalHtml += '<input type="hidden" name="csrf_token" value="' + (window.getCsrfToken ? window.getCsrfToken() : '') + '">';
             modalHtml += '<div class="form-section">';
             modalHtml += '<label class="section-label">Choose Payment Method</label>';
             modalHtml += '<div class="payment-methods-grid">';
@@ -1057,6 +1059,23 @@
                     showPlatformPaymentModal(workerId, workerName);
                 }
             });
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const tokenElement = document.querySelector('meta[name="csrf-token"]');
+            const csrfToken = tokenElement ? tokenElement.content : '';
+            if (csrfToken) {
+                document.querySelectorAll('form[method="POST"]').forEach(function(form) {
+                    if (!form.querySelector('input[name="csrf_token"]')) {
+                        const input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = 'csrf_token';
+                        input.value = csrfToken;
+                        form.prepend(input);
+                    }
+                });
+            }
+            window.getCsrfToken = function() { return csrfToken; };
         });
     </script>
     
