@@ -148,6 +148,10 @@ FLASK_ENV=development
 DATABASE_URL=sqlite:///umukozi.db
 ```
 
+> In production, do not use the default placeholder value. Set `SECRET_KEY` to a long random string through your hosting provider's environment variables.
+
+For example, on Render or Heroku, configure `SECRET_KEY` in the service dashboard instead of relying on a `.env` file.
+
 ### Customization
 
 - **Styling**: Modify `static/css/style.css` for visual changes

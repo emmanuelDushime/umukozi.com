@@ -67,22 +67,32 @@ docker-compose logs -f
 
 ## 🌍 Environment Variables
 
-Create a `.env` file with these settings:
+Create a `.env` file with these settings for local development:
 
 ```bash
 # Flask Configuration
 FLASK_APP=app.py
-FLASK_ENV=production
-SECRET_KEY=your-very-secure-secret-key
+FLASK_ENV=development
+SECRET_KEY=replace-with-a-secure-random-string
 
 # Database Configuration
-DATABASE_URL=sqlite:///umukozi.db  # For development
-# DATABASE_URL=postgresql://user:pass@host:5432/db  # For production
+DATABASE_URL=sqlite:///umukozi.db
 
 # File Upload
 UPLOAD_FOLDER=static/uploads
 MAX_CONTENT_LENGTH=16777216  # 16MB
 ```
+
+> In production, do not use the default placeholder. Set `SECRET_KEY` to a strong random string in your host environment.
+
+For Render or Heroku deployments, configure `SECRET_KEY` through the platform's environment variable settings instead of checking a `.env` file into source control.
+
+```bash
+# Example for Heroku
+heroku config:set SECRET_KEY=$(python -c "import secrets; print(secrets.token_urlsafe(64))")
+```
+
+For Render, add the same key under the service's environment variables dashboard.
 
 ---
 
