@@ -296,6 +296,10 @@ TRANSLATIONS = {
         # Find Workers
         'find_workers_title': 'Trouver des travailleurs de confiance',
         'discover_workers': 'Découvrez et connectez-vous avec les meilleurs professionnels de maison au Rwanda.',
+        'help_your_home': 'Aidez votre foyer',
+        'hero_description': 'Découvrez des travailleurs domestiques fiables pour la cuisine, la garde d\'enfants, le nettoyage et plus encore — entièrement vérifiés pour votre tranquillité d\'esprit.',
+        'get_started': 'Commencer',
+        'contact_now': 'Contactez-nous',
         'simple_steps': 'Étapes Simples',
         'how_it_works': 'Comment ça marche',
         'how_it_works_desc': 'Un processus simple en trois étapes pour vous mettre en relation avec le bon travailleur ou employeur',
@@ -478,6 +482,10 @@ TRANSLATIONS = {
         # Find Workers
         'find_workers_title': 'Shaka Abakozi Wizewe',
         'discover_workers': 'Shaka kandi uvugane n\'abakozi b\'indashyikirwa mu Rwanda.',
+        'help_your_home': 'Fasha urugo rwawe',
+        'hero_description': 'Sanga abakozi b\'ingo bizewe bo guteka, kwita ku bana, gusukura n\'ibindi — bose bemerewe kugira ngo ugire ituze.',
+        'get_started': 'Tangira',
+        'contact_now': 'Vugana ubu',
         'simple_steps': 'Intambwe zoroshye',
         'how_it_works': 'Uko Bikora',
         'how_it_works_desc': 'Uburyo bw\'intambwe eshatu zoroshye bwo kuguhuza n\'umukozi cyangwa umukoresha ukwiye',
