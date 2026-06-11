@@ -947,7 +947,7 @@ def payment_submit():
             send_whatsapp_receipt(payment, screenshot_path_val)
             
             flash('Payment submitted successfully! Receipt sent to WhatsApp.', 'success')
-            return redirect(url_for('employer_dashboard'))
+            return redirect(url_for('dashboard'))
         else:
             flash('Employer profile not found', 'error')
             return redirect(url_for('payment_form_mobile'))
@@ -3357,13 +3357,7 @@ def employer_post_job():
             return redirect(url_for('employer_post_job'))
         else:
             flash('Job posting is currently disabled by the administrator.', 'warning')
-            return redirect(url_for('employer_dashboard'))
-    
-    if request.method == 'POST':
-        # Get form data
-        title = request.form.get('title')
-        description = request.form.get('description')
-        job_type = request.form.get('job_type')
+            return redirect(url_for('dashboard'))
         
         # Location
         province = request.form.get('province')
