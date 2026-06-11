@@ -3358,7 +3358,12 @@ def employer_post_job():
         else:
             flash('Job posting is currently disabled by the administrator.', 'warning')
             return redirect(url_for('dashboard'))
-        
+
+    if request.method == 'POST':
+        title = request.form.get('title')
+        description = request.form.get('description')
+        job_type = request.form.get('job_type')
+
         # Location
         province = request.form.get('province')
         district = request.form.get('district')
